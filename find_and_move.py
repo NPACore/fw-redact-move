@@ -20,10 +20,13 @@ https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export#:~:text=th
 
 """
 import logging
-import flywheel  # pip install flywheel-sdk
 import os
 import re
+import sys
 
+import flywheel  # pip install flywheel-sdk
+# run 'pip install -r requirements.txt'
+from fw_gear_deid_export.container_export import find_or_create_container
 
 logging.basicConfig(
         level=os.environ.get("LOGLEVEL", "DEBUG").upper(),
@@ -32,18 +35,44 @@ logging.basicConfig(
 fw = flywheel.Client()
 # PHI = fw.projects.find_one("label==LTACH Swallow")
 PHI = fw.get("67c0a7cf735c304fb0bb71f4") # direct access (when missing permission)
-cen = fw.projects.find_one("label=LTACH Swallow deID")
+cen_proj = fw.projects.find_one("label=LTACH Swallow deID")
 
-acq = fw.get("67c07327f8480b82c2d61747").acquisitions()[0]
+# for debugging, quickly get an acq:
+#  acq = fw.get("67c07327f8480b82c2d61747").acquisitions()[0]
+#  ses = acq.session
 
+# all sessions that have PHI that will have been censored
 phi_sess = fw.sessions.find(f"project.label={PHI.label}")
+
 for ses in phi_sess:
+    dest_subj = find_or_create_container(fw, ses.subject, dest_parent=cen_proj)
+    dest_sess = find_or_create_container(fw, ses, dest_parent=dest_subj)
     for acq in ses.acquisitions():
+
+        dest_acq = find_or_create_container(fw, acq, dest_parent=dest_sess)
         for fname in acq.get_files():
             if not re.search('redacted', fname.name):
                 continue
-            # TODO: check if fname in cen project?
             print(fname)
-            # TODO: add to new container
-            #       must crate new project/subj/sess/acq first?
-            # https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export/-/blob/main/fw_gear_deid_export/container_export.py#L404
+            dest_file = find_or_create_container(fw, fname, dest_parent=dest_acq)
+            # does this check if already exists?
+            print(dest_file)
+            # just testing. exit all loops after first interation
+            raise Exception("dont want to run on everyone yet")
+            # we can update like
+            #  dest_acq.update({'label': 'Unknown_WFMod'})
+            # but this wont work for files
+            #   dest_acq.update({'files': [fname]})
+            # Detail: [{'type': 'extra_forbidden', 'loc': ['body', 'files'], 'msg': 'Extra inputs are not permitted', ...
+            dest_file = fname # WARNING: not a copy!
+            dest_file.parents.session = dest_sess.id
+            dest_file.parents.subject = dest_sess.subject.id
+            dest_file.parents.project  = cen_proj.id
+            dest_file.copy_of = fname.id
+
+            #
+            from fw_gear_deid_export.uploader import Uploader
+            up = Uploader(fw)
+            up.upload(dest_acq, dest_file.name, dest_file.path)
+
+

@@ -1,0 +1,37 @@
+# init from
+#  https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export/-/blob/main/deid-yml-examples/blank-export.yml
+# for dicom field scrubbing also see
+#   https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export/-/blob/main/deid-yml-examples/deid-dicom.yml?ref_type=heads
+#
+# pixel scrubbing from
+#   https://flywheel-io.gitlab.io/public/migration-toolkit/pages/pixels.html
+#
+# uploaded like
+#  fw upload deid.yaml  "fw://unknown/LTACH Swallow/"
+dicom:
+  filenames:
+    - input-regex: '(?P<name>.*)'
+      output: '{name}'
+  alter_pixels:
+    detect:
+      - dicom
+    pixels:
+      - remove: [0, 0, 180, 166]
+filename:
+  file-filter:
+    - '*'
+  filenames:
+    - input-regex: '(?P<name>.*)'
+      output: '{name}'
+flywheel:
+  acquisition:
+    all: true
+  file:
+    all: true
+  project:
+    all: true
+  session:
+    all: true
+  subject:
+    all: true
+only-config-profiles: true

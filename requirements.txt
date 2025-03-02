@@ -1,0 +1,2 @@
+git+https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export
+flywheel-sdk
