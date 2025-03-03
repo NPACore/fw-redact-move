@@ -20,7 +20,9 @@ dicom:
       - dicom
     pixels:
       - remove: [0, 0, 180, 166]
-        when: contains Modality .*
+        # https://pydicom.github.io/deid/user-docs/recipe-filters/
+        # want to always remove -- below should aways be true
+        when: missing Modality || empty Modality || contains Modality .*
 filename:
   file-filter:
     - '*'
