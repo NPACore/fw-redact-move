@@ -2,6 +2,7 @@
 
  * [`find_and_move.py`](find_and_move.py) - copy redacted dicoms form `fw://unknown/LTACH Swallow` to `fw://mrrc/LTACH Swallow deID`. Redacted files created by the presidio-image-redactor gear.  Tries [deid-export](https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export)'s `find_or_create_container` to mirror subj,ses,and acq containers. File copy (link by ref?) unsolved. (dead code for upload)
  * [`deid.yaml`] - [deid-export](https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export) YAML file (missing `when` block?) for dicom pixel censoring using fixed box
+  - syntax from deid -> [migration-toolkit:pixels](https://flywheel-io.gitlab.io/public/migration-toolkit/pages/pixels.html) -> [pydicom:deid:filters](https://pydicom.github.io/deid/user-docs/recipe-filters/)
 
 
 ## Notes

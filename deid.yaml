@@ -3,6 +3,9 @@
 # for dicom field scrubbing also see
 #   https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export/-/blob/main/deid-yml-examples/deid-dicom.yml?ref_type=heads
 #
+# when syntax:
+# https://pydicom.github.io/deid/user-docs/recipe-filters/
+#
 # pixel scrubbing from
 #   https://flywheel-io.gitlab.io/public/migration-toolkit/pages/pixels.html
 #
@@ -17,6 +20,7 @@ dicom:
       - dicom
     pixels:
       - remove: [0, 0, 180, 166]
+        when: contains Modality .*
 filename:
   file-filter:
     - '*'
