@@ -1,3 +1,8 @@
+name: force_scrub
+version: 0.1.20250411.1
+
+# 20250411 - add "burned_in" for deid 1.8.0 update (PV@FW)
+#
 # init from
 #  https://gitlab.com/flywheel-io/scientific-solutions/gears/deid-export/-/blob/main/deid-yml-examples/blank-export.yml
 # for dicom field scrubbing also see
@@ -10,34 +15,51 @@
 #   https://flywheel-io.gitlab.io/public/migration-toolkit/pages/pixels.html
 #
 # uploaded like
-#  fw upload deid.yaml  "fw://unknown/LTACH Swallow/"
+#  fw upload deid.yaml  "fw://flywheel/bids/"
+# see Makefile
+
 dicom:
-  filenames:
-    - input-regex: '(?P<name>.*)'
-      output: '{name}'
   alter_pixels:
     detect:
       - dicom
+
     pixels:
-      - remove: [0, 0, 180, 166]
-        # https://pydicom.github.io/deid/user-docs/recipe-filters/
-        # want to always remove -- below should aways be true
-        when: missing Modality || empty Modality || contains Modality .*
-filename:
-  file-filter:
-    - '*'
+      # Force Scrub Top Left
+      - remove: [0, 0, 250, 125]
+        when: |
+          contains SOPInstanceUID .
+
+  fields:
+    - name: PatientID
+      remove: true
+    - name: PatientName
+      remove: true
+    - name: PatientBirthDate
+      remove: true
+    - name: PatientSex
+      remove: true
+    - name: StudyDate
+      remove: true
+    - name: StudyTime
+      remove: true
+    - name: BurnedInAnnotation
+      replace-with: NO
+    - name: ImageType
+      replace-with: DERIVED\SECONDARY
+
   filenames:
-    - input-regex: '(?P<name>.*)'
+    - input-regex: (?P<name>.*)
       output: '{name}'
 flywheel:
+  project:
+    all: true
+  subject:
+    all: true
+  session:
+    all: true
   acquisition:
     all: true
   file:
     all: true
-  project:
-    all: true
-  session:
-    all: true
-  subject:
-    all: true
+
 only-config-profiles: true
